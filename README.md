@@ -14,7 +14,6 @@ A React implementation of the classic 2048 puzzle game.
 ```bash
    npm start
 ```
-=======
 4. Open the link to play the game
 
 ## How to Play
