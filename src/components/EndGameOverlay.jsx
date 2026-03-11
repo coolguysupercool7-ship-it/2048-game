@@ -1,0 +1,64 @@
+import React from 'react';
+import { THEME } from '../config/gameSettings';
+
+function EndGameOverlay({ isGameOver, playerWon, finalScore, onRestart }) {
+  // Don't show overlay if game is still active
+  if (!isGameOver && !playerWon) return null;
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'rgba(238, 228, 218, 0.73)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 100
+    }}>
+      <div style={{
+        background: 'white',
+        borderRadius: '10px',
+        padding: '40px',
+        textAlign: 'center',
+        maxWidth: '400px',
+        margin: '20px'
+      }}>
+        <h2 style={{ 
+          fontSize: '55px',
+          fontWeight: 'bold',
+          color: THEME.primaryText,
+          margin: '0 0 20px 0'
+        }}>
+          {playerWon ? 'You win!' : 'Game over!'}
+        </h2>
+        <p style={{ 
+          color: THEME.primaryText,
+          fontSize: '16px',
+          marginBottom: '30px'
+        }}>
+          Final Score: <strong style={{ fontSize: '32px', display: 'block', marginTop: '10px' }}>{finalScore}</strong>
+        </p>
+        <button
+          onClick={onRestart}
+          style={{
+            background: THEME.buttonNormal,
+            color: '#f9f6f2',
+            border: 'none',
+            padding: '15px 40px',
+            borderRadius: '5px',
+            fontSize: '20px',
+            fontWeight: 'bold',
+            cursor: 'pointer'
+          }}
+        >
+          Try again
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default EndGameOverlay;

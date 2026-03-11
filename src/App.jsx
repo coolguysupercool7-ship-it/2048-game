@@ -1,175 +1,203 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import GameBoard from './components/GameBoard';
-import ScoreBoard from './components/ScoreBoard';
-import GameOverModal from './components/GameOverModal';
-import Instructions from './components/Instructions';
-import { createEmptyGrid, canMove, slide, addRandomTile } from './utils/gameLogic';
-import { GRID_SIZE, COLORS } from './constants/config';
-import './styles/animations.css';
+import Board from './components/Board';
+import Header from './components/Header';
+import EndGameOverlay from './components/EndGameOverlay';
+import HowToPlay from './components/HowToPlay';
+import { makeEmptyBoard, hasValidMoves, slideAndMerge, spawnRandomTile } from './helpers/boardHelpers';
+import { BOARD_SIZE, THEME } from './config/gameSettings';
+import './styles/tileAnimations.css';
 
-const App = () => {
-  const [grid, setGrid] = useState([]);
-  const [score, setScore] = useState(0);
-  const [bestScore, setBestScore] = useState(0);
-  const [gameOver, setGameOver] = useState(false);
-  const [won, setWon] = useState(false);
-  const [newTiles, setNewTiles] = useState([]);
-  const [mergedTiles, setMergedTiles] = useState([]);
+function App() {
+  const [tiles, setTiles] = useState([]);
+  const [currentScore, setCurrentScore] = useState(0);
+  const [topScore, setTopScore] = useState(0);
+  const [isGameOver, setIsGameOver] = useState(false);
+  const [playerWon, setPlayerWon] = useState(false);
+  const [newlySpawned, setNewlySpawned] = useState([]);
+  const [recentlyMerged, setRecentlyMerged] = useState([]);
 
-  const initGame = useCallback(() => {
-    let newGrid = createEmptyGrid();
-    newGrid = addRandomTile(newGrid, setNewTiles);
-    newGrid = addRandomTile(newGrid, setNewTiles);
-    setGrid(newGrid);
-    setScore(0);
-    setGameOver(false);
-    setWon(false);
-    setNewTiles([]);
-    setMergedTiles([]);
+  // Start fresh game - clear board and add 2 random tiles
+  const startNewGame = useCallback(() => {
+    let freshBoard = makeEmptyBoard();
+    freshBoard = spawnRandomTile(freshBoard, setNewlySpawned);
+    freshBoard = spawnRandomTile(freshBoard, setNewlySpawned);
+    setTiles(freshBoard);
+    setCurrentScore(0);
+    setIsGameOver(false);
+    setPlayerWon(false);
+    setNewlySpawned([]);
+    setRecentlyMerged([]);
   }, []);
 
+  // On first load, start game and load saved high score
   useEffect(() => {
-    initGame();
-    const saved = localStorage.getItem('2048-best');
-    if (saved) setBestScore(parseInt(saved));
-  }, [initGame]);
-
-  useEffect(() => {
-    if (score > bestScore) {
-      setBestScore(score);
-      localStorage.setItem('2048-best', score.toString());
+    startNewGame();
+    const savedBest = localStorage.getItem('2048-best');
+    if (savedBest) {
+      setTopScore(parseInt(savedBest));
     }
-  }, [score, bestScore]);
+  }, [startNewGame]);
 
-  // WRAP move IN useCallback
-  const move = useCallback((direction) => {
-    if (gameOver) return;
+  // Update best score in localStorage when current score beats it
+  useEffect(() => {
+    if (currentScore > topScore) {
+      setTopScore(currentScore);
+      localStorage.setItem('2048-best', currentScore.toString());
+    }
+  }, [currentScore, topScore]);
 
-    let newGrid = grid.map(row => [...row]);
-    let moved = false;
-    let scoreIncrease = 0;
-    const mergedPositions = [];
+  // Main movement handler - processes arrow key inputs
+  // Note: using callback to avoid recreating function on every render
+  const processMove = useCallback((direction) => {
+    if (isGameOver) return;
 
+    let updatedBoard = tiles.map(row => [...row]);
+    let somethingMoved = false;
+    let pointsGained = 0;
+    const mergedLocations = [];
+
+    // Small delay for smoother feel (gives time for previous animations to finish)
     setTimeout(() => {
       if (direction === 'left') {
-        for (let i = 0; i < GRID_SIZE; i++) {
-          const oldRow = [...newGrid[i]];
-          const newRow = slide(oldRow);
-          newGrid[i] = newRow;
+        // Process each row left to right
+        for (let r = 0; r < BOARD_SIZE; r++) {
+          const originalRow = [...updatedBoard[r]];
+          const processedRow = slideAndMerge(originalRow);
+          updatedBoard[r] = processedRow;
           
-          if (JSON.stringify(oldRow) !== JSON.stringify(newRow)) {
-            moved = true;
-            for (let j = 0; j < GRID_SIZE; j++) {
-              if (newRow[j] > oldRow[j]) {
-                scoreIncrease += newRow[j];
-                mergedPositions.push({ row: i, col: j });
+          // Track if anything actually changed
+          const rowChanged = originalRow.some((val, idx) => val !== processedRow[idx]);
+          if (rowChanged) {
+            somethingMoved = true;
+            // Find merged tiles and add to score
+            for (let c = 0; c < BOARD_SIZE; c++) {
+              if (processedRow[c] > originalRow[c]) {
+                pointsGained += processedRow[c];
+                mergedLocations.push({ row: r, col: c });
               }
             }
           }
         }
       } else if (direction === 'right') {
-        for (let i = 0; i < GRID_SIZE; i++) {
-          const oldRow = [...newGrid[i]];
-          const newRow = slide(oldRow.reverse()).reverse();
-          newGrid[i] = newRow;
+        // Process each row right to left by reversing
+        for (let r = 0; r < BOARD_SIZE; r++) {
+          const originalRow = [...updatedBoard[r]];
+          const processedRow = slideAndMerge(originalRow.reverse()).reverse();
+          updatedBoard[r] = processedRow;
           
-          if (JSON.stringify(oldRow) !== JSON.stringify(newRow)) {
-            moved = true;
-            for (let j = 0; j < GRID_SIZE; j++) {
-              if (newRow[j] > oldRow[j]) {
-                scoreIncrease += newRow[j];
-                mergedPositions.push({ row: i, col: j });
+          const rowChanged = originalRow.some((val, idx) => val !== processedRow[idx]);
+          if (rowChanged) {
+            somethingMoved = true;
+            for (let c = 0; c < BOARD_SIZE; c++) {
+              if (processedRow[c] > originalRow[c]) {
+                pointsGained += processedRow[c];
+                mergedLocations.push({ row: r, col: c });
               }
             }
           }
         }
       } else if (direction === 'up') {
-        for (let j = 0; j < GRID_SIZE; j++) {
-          const column = newGrid.map(row => row[j]);
-          const oldColumn = [...column];
-          const newColumn = slide(column);
+        // Process each column top to bottom
+        for (let c = 0; c < BOARD_SIZE; c++) {
+          const originalCol = updatedBoard.map(row => row[c]);
+          const processedCol = slideAndMerge(originalCol);
           
-          for (let i = 0; i < GRID_SIZE; i++) {
-            newGrid[i][j] = newColumn[i];
+          for (let r = 0; r < BOARD_SIZE; r++) {
+            updatedBoard[r][c] = processedCol[r];
           }
           
-          if (JSON.stringify(oldColumn) !== JSON.stringify(newColumn)) {
-            moved = true;
-            for (let i = 0; i < GRID_SIZE; i++) {
-              if (newColumn[i] > oldColumn[i]) {
-                scoreIncrease += newColumn[i];
-                mergedPositions.push({ row: i, col: j });
+          const colChanged = originalCol.some((val, idx) => val !== processedCol[idx]);
+          if (colChanged) {
+            somethingMoved = true;
+            for (let r = 0; r < BOARD_SIZE; r++) {
+              if (processedCol[r] > originalCol[r]) {
+                pointsGained += processedCol[r];
+                mergedLocations.push({ row: r, col: c });
               }
             }
           }
         }
       } else if (direction === 'down') {
-        for (let j = 0; j < GRID_SIZE; j++) {
-          const column = newGrid.map(row => row[j]);
-          const oldColumn = [...column];
-          const newColumn = slide(column.reverse()).reverse();
+        // Process each column bottom to top by reversing
+        for (let c = 0; c < BOARD_SIZE; c++) {
+          const originalCol = updatedBoard.map(row => row[c]);
+          const processedCol = slideAndMerge(originalCol.reverse()).reverse();
           
-          for (let i = 0; i < GRID_SIZE; i++) {
-            newGrid[i][j] = newColumn[i];
+          for (let r = 0; r < BOARD_SIZE; r++) {
+            updatedBoard[r][c] = processedCol[r];
           }
           
-          if (JSON.stringify(oldColumn) !== JSON.stringify(newColumn)) {
-            moved = true;
-            for (let i = 0; i < GRID_SIZE; i++) {
-              if (newColumn[i] > oldColumn[i]) {
-                scoreIncrease += newColumn[i];
-                mergedPositions.push({ row: i, col: j });
+          const colChanged = originalCol.some((val, idx) => val !== processedCol[idx]);
+          if (colChanged) {
+            somethingMoved = true;
+            for (let r = 0; r < BOARD_SIZE; r++) {
+              if (processedCol[r] > originalCol[r]) {
+                pointsGained += processedCol[r];
+                mergedLocations.push({ row: r, col: c });
               }
             }
           }
         }
       }
 
-      if (moved) {
-        setMergedTiles(mergedPositions);
-        setTimeout(() => setMergedTiles([]), 150);
+      // Only update state if tiles actually moved
+      if (somethingMoved) {
+        // Trigger merge animation
+        setRecentlyMerged(mergedLocations);
+        setTimeout(() => setRecentlyMerged([]), 150);
         
-        setScore(prev => prev + scoreIncrease);
+        // Add points earned from merges
+        setCurrentScore(prev => prev + pointsGained);
         
+        // After animations, spawn new tile and check game state
         setTimeout(() => {
-          newGrid = addRandomTile(newGrid, setNewTiles);
-          setGrid(newGrid);
+          updatedBoard = spawnRandomTile(updatedBoard, setNewlySpawned);
+          setTiles(updatedBoard);
 
-          if (newGrid.flat().includes(2048) && !won) {
-            setWon(true);
+          // Check for win condition (reached 2048)
+          const has2048 = updatedBoard.some(row => row.includes(2048));
+          if (has2048 && !playerWon) {
+            setPlayerWon(true);
           }
 
-          if (!canMove(newGrid)) {
-            setGameOver(true);
+          // Check for loss condition (no valid moves)
+          if (!hasValidMoves(updatedBoard)) {
+            setIsGameOver(true);
           }
         }, 100);
       }
     }, 50);
-  }, [grid, gameOver, won]); // ADD DEPENDENCIES HERE
+  }, [tiles, isGameOver, playerWon]);
 
-  // ADD move TO THE DEPENDENCY ARRAY
+  // Listen for arrow key presses
   useEffect(() => {
-    const handleKeyPress = (e) => {
-      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-        e.preventDefault();
-        const directionMap = {
+    const handleKeyDown = (event) => {
+      const arrowKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+      
+      if (arrowKeys.includes(event.key)) {
+        event.preventDefault(); // prevent page scroll
+        
+        const keyToDirection = {
           'ArrowUp': 'up',
           'ArrowDown': 'down',
           'ArrowLeft': 'left',
           'ArrowRight': 'right'
         };
-        move(directionMap[e.key]);
+        
+        processMove(keyToDirection[event.key]);
       }
     };
 
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [move]); // CHANGED: added 'move' to dependency array
+    window.addEventListener('keydown', handleKeyDown);
+    
+    // Cleanup listener on unmount
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [processMove]);
 
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: COLORS.background,
+      background: THEME.pageBackground,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -177,28 +205,30 @@ const App = () => {
       padding: '20px'
     }}>
       <div style={{ width: '100%', maxWidth: '500px' }}>
+        {/* Game title */}
         <div style={{ textAlign: 'center', marginBottom: '30px' }}>
           <h1 style={{ 
             fontSize: '80px', 
             fontWeight: 'bold', 
-            color: COLORS.text,
+            color: THEME.primaryText,
             margin: '0 0 10px 0'
           }}>2048</h1>
           <p style={{ 
-            color: COLORS.text,
+            color: THEME.primaryText,
             fontSize: '18px',
             margin: 0,
             fontWeight: 'bold'
           }}>Join the tiles, get to <strong>2048!</strong></p>
         </div>
 
+        {/* Score display and new game button */}
         <div style={{ marginBottom: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <ScoreBoard score={score} bestScore={bestScore} />
+            <Header currentScore={currentScore} topScore={topScore} />
             <button
-              onClick={initGame}
+              onClick={startNewGame}
               style={{
-                background: COLORS.button,
+                background: THEME.buttonNormal,
                 color: '#f9f6f2',
                 border: 'none',
                 padding: '12px 20px',
@@ -208,20 +238,30 @@ const App = () => {
                 cursor: 'pointer',
                 transition: 'background 0.2s'
               }}
-              onMouseOver={(e) => e.target.style.background = COLORS.buttonHover}
-              onMouseOut={(e) => e.target.style.background = COLORS.button}
+              onMouseEnter={(e) => e.target.style.background = THEME.buttonHover}
+              onMouseLeave={(e) => e.target.style.background = THEME.buttonNormal}
             >
               New Game
             </button>
           </div>
         </div>
 
-        <GameBoard grid={grid} newTiles={newTiles} mergedTiles={mergedTiles} />
-        <Instructions />
-        <GameOverModal gameOver={gameOver} won={won} score={score} onRestart={initGame} />
+        {/* Main game board */}
+        <Board tiles={tiles} newlySpawned={newlySpawned} recentlyMerged={recentlyMerged} />
+        
+        {/* Instructions */}
+        <HowToPlay />
+        
+        {/* Win/lose overlay */}
+        <EndGameOverlay 
+          isGameOver={isGameOver} 
+          playerWon={playerWon} 
+          finalScore={currentScore} 
+          onRestart={startNewGame} 
+        />
       </div>
     </div>
   );
-};
+}
 
 export default App;
