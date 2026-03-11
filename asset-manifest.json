@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/2048-game/static/css/main.60bb2bb4.css",
+    "main.js": "/2048-game/static/js/main.a78e81b3.js",
+    "index.html": "/2048-game/index.html",
+    "main.60bb2bb4.css.map": "/2048-game/static/css/main.60bb2bb4.css.map",
+    "main.a78e81b3.js.map": "/2048-game/static/js/main.a78e81b3.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.60bb2bb4.css",
+    "static/js/main.a78e81b3.js"
+  ]
+}
