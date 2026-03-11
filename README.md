@@ -14,9 +14,6 @@ A React implementation of the classic 2048 puzzle game.
 ```bash
    npm start
 ```
-<<<<<<< HEAD
-
-4. Open link to play the game
 =======
 4. Open the link to play the game
 
@@ -34,7 +31,6 @@ Use your arrow keys to move the tiles. When two tiles with the same number touch
 ## Build
 
 To create a production build:
-<<<<<<< HEAD
 ```bash
 npm run build
 ```
