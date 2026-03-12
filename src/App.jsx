@@ -46,7 +46,7 @@ function App() {
     if (isGameOver) return;
 
     let updatedBoard = tiles.map(row => [...row]);
-    let didMove = false;
+    let detectMotion = false;
     let scoreIncrease = 0;
     const mergedTiles = [];
 
@@ -58,7 +58,7 @@ function App() {
           updatedBoard[r] = new_row;
           const hasChanged = old_row.some((val, idx) => val !== new_row[idx]);
           if (hasChanged) {
-            didMove = true;
+            detectMotion = true;
             for (let c = 0; c < BOARD_SIZE; c++) {
               if (new_row[c] > old_row[c]) {
                 scoreIncrease += new_row[c];
@@ -74,7 +74,7 @@ function App() {
           updatedBoard[r] = new_row;
           const hasChanged = old_row.some((val, idx) => val !== new_row[idx]);
           if (hasChanged) {
-            didMove = true;
+            detectMotion = true;
             for (let c = 0; c < BOARD_SIZE; c++) {
               if (new_row[c] > old_row[c]) {
                 scoreIncrease += new_row[c];
@@ -93,7 +93,7 @@ function App() {
           
           const col_changed = originalCol.some((val, idx) => val !== newCol[idx]);
           if (col_changed) {
-            didMove = true;
+            detectMotion = true;
             for (let r = 0; r < BOARD_SIZE; r++) {
               if (newCol[r] > originalCol[r]) {
                 scoreIncrease += newCol[r];
@@ -113,7 +113,7 @@ function App() {
           
           const col_changed = originalCol.some((val, idx) => val !== newCol[idx]);
           if (col_changed) {
-            didMove = true;
+            detectMotion = true;
             for (let r = 0; r < BOARD_SIZE; r++) {
               if (newCol[r] > originalCol[r]) {
                 scoreIncrease += newCol[r];
@@ -124,7 +124,7 @@ function App() {
         }
        }
 
-      if (didMove) 
+      if (detectMotion) 
     {
         setRecentlyMerged(mergedTiles);
         setTimeout(() => setRecentlyMerged([]), 150);
@@ -155,14 +155,14 @@ function App() {
       if (arrowKeys.includes(event.key)) {
         event.preventDefault();
         
-        const direction_map = {
+        const arrow_key = {
           'ArrowUp': 'up',
           'ArrowDown': 'down',
           'ArrowLeft': 'left',
           'ArrowRight': 'right'
         };
         
-        handleMove(direction_map[event.key]);
+        handleMove(arrow_key[event.key]);
       }
     };
 
