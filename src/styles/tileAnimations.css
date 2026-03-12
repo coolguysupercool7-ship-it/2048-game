@@ -1,4 +1,4 @@
-/* animation for when a new tile appears */
+
 @keyframes appear {
   0% {
     opacity: 0;
@@ -10,7 +10,6 @@
   }
 }
 
-/* animation for when two tiles merge */
 @keyframes pop {
   0% {
     transform: scale(1);
