@@ -2,14 +2,14 @@ import React from 'react';
 import GameTile from './GameTile';
 import { THEME } from '../config/gameSettings';
 
-function Board({ tiles, newlySpawned, recentlyMerged }) {
+function Board({ tiles, newly_spawned, recently_merged }) {
   
-  const wasJustSpawned = (r, c) => {
-    return newlySpawned.some(t => t.row === r && t.col === c);
+  const was_just_spawned = (r, c) => {
+    return newly_spawned.some(t => t.row === r && t.col === c);
   };
 
   const wasJustMerged = (r, c) => {
-    return recentlyMerged.some(t => t.row === r && t.col === c);
+    return recently_merged.some(t => t.row === r && t.col === c);
   };
 
   return (
@@ -29,7 +29,7 @@ function Board({ tiles, newlySpawned, recentlyMerged }) {
             <GameTile
               key={`${rowIndex}-${colIndex}`}
               value={cellValue}
-              justSpawned={wasJustSpawned(rowIndex, colIndex)}
+              just_spawned={was_just_spawned(rowIndex, colIndex)}
               justMerged={wasJustMerged(rowIndex, colIndex)}
             />
           ))
