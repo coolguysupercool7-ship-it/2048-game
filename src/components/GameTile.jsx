@@ -6,10 +6,13 @@ import '../styles/tileAnimations.css';
 function GameTile({ value, justSpawned, justMerged }) {
   const styling = determineTileStyle(value, TILE_COLORS, FALLBACK_TILE);
   
-  // Determine which animation to play
+  // figure out which animation to show
   let animationClass = 'none';
-  if (justSpawned) animationClass = 'appear 0.2s';
-  else if (justMerged) animationClass = 'pop 0.15s';
+  if (justSpawned) {
+    animationClass = 'appear 0.2s';
+  } else if (justMerged) {
+    animationClass = 'pop 0.15s';
+  }
   
   return (
     <div
