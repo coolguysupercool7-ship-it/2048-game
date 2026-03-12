@@ -1,7 +1,6 @@
-// Board dimensions - keeping it classic 4x4
+// keeping the classic 4x4 grid size
 export const BOARD_SIZE = 4;
 
-// Visual theme colors and tile backgrounds
 export const THEME = {
   pageBackground: '#faf8ef',
   primaryText: '#776e65',
@@ -12,8 +11,8 @@ export const THEME = {
   scoreLabel: '#eee4da',
 };
 
-// Tile color scheme based on values
-// Each tile gets unique styling as numbers double
+// tile colors - each value gets its own color scheme
+// higher numbers = darker backgrounds usually
 export const TILE_COLORS = {
   0: { bg: 'rgba(238, 228, 218, 0.35)', color: 'transparent', fontSize: '55px' },
   2: { bg: '#eee4da', color: '#776e65', fontSize: '55px' },
@@ -29,7 +28,7 @@ export const TILE_COLORS = {
   2048: { bg: '#edc22e', color: '#f9f6f2', fontSize: '35px' },
 };
 
-// Fallback styling for super high values (4096+)
+// for anything above 2048 (4096, 8192, etc)
 export const FALLBACK_TILE = { 
   bg: '#3c3a32', 
   color: '#f9f6f2', 
