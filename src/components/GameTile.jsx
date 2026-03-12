@@ -1,17 +1,16 @@
 import React from 'react';
 import { TILE_COLORS, FALLBACK_TILE } from '../config/gameSettings';
-import { determineTileStyle } from '../helpers/boardHelpers';
+import { get_tile_style } from '../helpers/boardHelpers';
 import '../styles/tileAnimations.css';
 
-function GameTile({ value, justSpawned, justMerged }) {
-  const styling = determineTileStyle(value, TILE_COLORS, FALLBACK_TILE);
+function GameTile({ value, just_spawned, justMerged }) {
+  const styling = get_tile_style(value, TILE_COLORS, FALLBACK_TILE);
   
-  // figure out which animation to show
-  let animationClass = 'none';
-  if (justSpawned) {
-    animationClass = 'appear 0.2s';
+  let animation_class = 'none';
+  if (just_spawned) {
+    animation_class = 'appear 0.2s';
   } else if (justMerged) {
-    animationClass = 'pop 0.15s';
+    animation_class = 'pop 0.15s';
   }
   
   return (
@@ -28,7 +27,7 @@ function GameTile({ value, justSpawned, justMerged }) {
         fontWeight: 'bold',
         transition: 'all 0.15s ease-in-out',
         transform: 'scale(1)',
-        animation: animationClass
+        animation: animation_class
       }}
     >
       {value !== 0 && value}
