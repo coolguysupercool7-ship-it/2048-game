@@ -1,38 +1,42 @@
 import React from 'react';
-import Tile from './tile';
-import {COLORS} from '../constants/config';
+import GameTile from './GameTile';
+import { THEME } from '../config/gameSettings';
 
-const GameBoard =({grid, newTiles, mergedTiles}) => {
-    const isTileNew =(row, col) => {
-        return newTiles.some(t => t.row === row && t.col === col);
-    };
-    const isTileMerged = (row, col) =>{
-        return mergedTiles.some(t=> t.row === row && t.col === col);
-    };
-    return(
+function Board({ tiles, newlySpawned, recentlyMerged }) {
+  
+  const wasJustSpawned = (r, c) => {
+    return newlySpawned.some(t => t.row === r && t.col === c);
+  };
+
+  const wasJustMerged = (r, c) => {
+    return recentlyMerged.some(t => t.row === r && t.col === c);
+  };
+
+  return (
+    <div style={{ 
+      background: THEME.boardBg,
+      borderRadius: '10px',
+      padding: '15px',
+      position: 'relative'
+    }}>
       <div style={{
-        background: COLORS.gridBackground,
-        borderRadius:'10px',
-        padding:'15px',
-        position:'relative'
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: '15px',
       }}>
-        <div style={{
-            display:'grid',
-            gridTemplateColumns:'repeat(4, 1fr)',
-            gap:'15px',
-        }}>
-            {grid.map((row, i)=>
-              row.map((cell, j) => (
-                <Tile
-                key={`${i}-${j}`}
-                value={cell}
-                isNew={isTileNew(i,j)}
-                isMerged={isTileMerged(i,j)}
-                />
-              ))
-            )}
-        </div>
+        {tiles.map((row, rowIndex) =>
+          row.map((cellValue, colIndex) => (
+            <GameTile
+              key={`${rowIndex}-${colIndex}`}
+              value={cellValue}
+              justSpawned={wasJustSpawned(rowIndex, colIndex)}
+              justMerged={wasJustMerged(rowIndex, colIndex)}
+            />
+          ))
+        )}
       </div>
-    );
-};
-export default GameBoard;
+    </div>
+  );
+}
+
+export default Board;
