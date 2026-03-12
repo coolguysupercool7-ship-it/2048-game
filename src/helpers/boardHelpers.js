@@ -1,7 +1,8 @@
 import { BOARD_SIZE } from '../config/gameSettings';
 
 // creates a fresh 4x4 board filled with zeros
-export function makeEmptyBoard() {
+// creates a fresh 4x4 board filled with zeros
+export function make_empty_board() {
   const rows = [];
   for (let i = 0; i < BOARD_SIZE; i++) {
     rows.push(new Array(BOARD_SIZE).fill(0));
@@ -11,7 +12,7 @@ export function makeEmptyBoard() {
 
 // checks if the player can still make any moves
 // game over when board is full AND no adjacent matching tiles
-export function hasValidMoves(board) {
+export function check_valid_moves(board) {
   for (let row = 0; row < BOARD_SIZE; row++) {
     for (let col = 0; col < BOARD_SIZE; col++) {
       // any empty cell means we can still play
@@ -35,19 +36,19 @@ export function hasValidMoves(board) {
 // works on a single row or column at a time
 export function slideAndMerge(line) {
   // step 1: remove all the zeros
-  const nonZero = line.filter(val => val !== 0);
+  const non_zero = line.filter(val => val !== 0);
   const result = [];
   let idx = 0;
   
   // step 2: merge matching adjacent tiles
-  while (idx < nonZero.length) {
-    if (idx + 1 < nonZero.length && nonZero[idx] === nonZero[idx + 1]) {
+  while (idx < non_zero.length) {
+    if (idx + 1 < non_zero.length && non_zero[idx] === non_zero[idx + 1]) {
       // found a match! merge them
-      result.push(nonZero[idx] * 2);
+      result.push(non_zero[idx] * 2);
       idx += 2; // skip both tiles
     } else {
       // no match, just keep the tile
-      result.push(nonZero[idx]);
+      result.push(non_zero[idx]);
       idx++;
     }
   }
@@ -62,40 +63,40 @@ export function slideAndMerge(line) {
 
 // spawns a new tile (2 or 4) in a random empty spot
 // classic 2048 rules: 90% chance for 2, 10% chance for 4
-export function spawnRandomTile(currentBoard, onTileSpawned) {
-  const emptySpots = [];
+export function spawn_random_tile(current_board, onTileSpawned) {
+  const empty_spots = [];
   
   // find all empty positions
-  currentBoard.forEach((row, rowIdx) => {
+  current_board.forEach((row, rowIdx) => {
     row.forEach((cell, colIdx) => {
       if (cell === 0) {
-        emptySpots.push({ row: rowIdx, col: colIdx });
+        empty_spots.push({ row: rowIdx, col: colIdx });
       }
     });
   });
   
   // board is full, can't spawn
-  if (emptySpots.length === 0) return currentBoard;
+  if (empty_spots.length === 0) return current_board;
   
   // pick a random empty spot
-  const randomSpot = emptySpots[Math.floor(Math.random() * emptySpots.length)];
-  const newValue = Math.random() < 0.9 ? 2 : 4;
+  const random_spot = empty_spots[Math.floor(Math.random() * empty_spots.length)];
+  const new_value = Math.random() < 0.9 ? 2 : 4;
   
   // create a copy to avoid mutating the original
-  const updatedBoard = currentBoard.map(row => [...row]);
-  updatedBoard[randomSpot.row][randomSpot.col] = newValue;
+  const updated_board = current_board.map(row => [...row]);
+  updated_board[random_spot.row][random_spot.col] = new_value;
   
   // notify parent component so it can animate the new tile
   if (onTileSpawned) {
-    onTileSpawned([randomSpot]);
+    onTileSpawned([random_spot]);
     // clear after animation finishes
     setTimeout(() => onTileSpawned([]), 200);
   }
   
-  return updatedBoard;
+  return updated_board;
 }
 
 // gets the color scheme for a tile based on its value
-export function determineTileStyle(value, colorScheme, fallback) {
+export function get_tile_style(value, colorScheme, fallback) {
   return colorScheme[value] || fallback;
 }
