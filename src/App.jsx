@@ -16,9 +16,10 @@ function App() {
   const [newlySpawned, setNewlySpawned] = useState([]);
   const [recentlyMerged, setRecentlyMerged] = useState([]);
 
-  // Start fresh game - clear board and add 2 random tiles
+  // reset everything and start a new game
   const startNewGame = useCallback(() => {
     let freshBoard = makeEmptyBoard();
+    // add 2 random tiles to start
     freshBoard = spawnRandomTile(freshBoard, setNewlySpawned);
     freshBoard = spawnRandomTile(freshBoard, setNewlySpawned);
     setTiles(freshBoard);
@@ -29,16 +30,17 @@ function App() {
     setRecentlyMerged([]);
   }, []);
 
-  // On first load, start game and load saved high score
+  // run once when app loads
   useEffect(() => {
     startNewGame();
+    // try to load saved high score from browser
     const savedBest = localStorage.getItem('2048-best');
     if (savedBest) {
       setTopScore(parseInt(savedBest));
     }
   }, [startNewGame]);
 
-  // Update best score in localStorage when current score beats it
+  // save best score whenever it changes
   useEffect(() => {
     if (currentScore > topScore) {
       setTopScore(currentScore);
@@ -46,30 +48,30 @@ function App() {
     }
   }, [currentScore, topScore]);
 
-  // Main movement handler - processes arrow key inputs
-  // Note: using callback to avoid recreating function on every render
+  // main game logic - handles arrow key movements
   const processMove = useCallback((direction) => {
-    if (isGameOver) return;
+    if (isGameOver) return; // can't move if game is over
 
     let updatedBoard = tiles.map(row => [...row]);
     let somethingMoved = false;
     let pointsGained = 0;
     const mergedLocations = [];
 
-    // Small delay for smoother feel (gives time for previous animations to finish)
+    // using a small delay here makes the animations feel smoother
+    // without this, tiles would snap instantly which looks jarring
     setTimeout(() => {
       if (direction === 'left') {
-        // Process each row left to right
+        // process each row from left to right
         for (let r = 0; r < BOARD_SIZE; r++) {
           const originalRow = [...updatedBoard[r]];
           const processedRow = slideAndMerge(originalRow);
           updatedBoard[r] = processedRow;
           
-          // Track if anything actually changed
+          // did anything actually change in this row?
           const rowChanged = originalRow.some((val, idx) => val !== processedRow[idx]);
           if (rowChanged) {
             somethingMoved = true;
-            // Find merged tiles and add to score
+            // check which tiles merged and add their values to score
             for (let c = 0; c < BOARD_SIZE; c++) {
               if (processedRow[c] > originalRow[c]) {
                 pointsGained += processedRow[c];
@@ -79,7 +81,7 @@ function App() {
           }
         }
       } else if (direction === 'right') {
-        // Process each row right to left by reversing
+        // same as left but reverse the row first
         for (let r = 0; r < BOARD_SIZE; r++) {
           const originalRow = [...updatedBoard[r]];
           const processedRow = slideAndMerge(originalRow.reverse()).reverse();
@@ -97,11 +99,12 @@ function App() {
           }
         }
       } else if (direction === 'up') {
-        // Process each column top to bottom
+        // for vertical movement, work with columns instead of rows
         for (let c = 0; c < BOARD_SIZE; c++) {
           const originalCol = updatedBoard.map(row => row[c]);
           const processedCol = slideAndMerge(originalCol);
           
+          // put the processed column back
           for (let r = 0; r < BOARD_SIZE; r++) {
             updatedBoard[r][c] = processedCol[r];
           }
@@ -118,7 +121,7 @@ function App() {
           }
         }
       } else if (direction === 'down') {
-        // Process each column bottom to top by reversing
+        // same as up but reverse the column
         for (let c = 0; c < BOARD_SIZE; c++) {
           const originalCol = updatedBoard.map(row => row[c]);
           const processedCol = slideAndMerge(originalCol.reverse()).reverse();
@@ -140,27 +143,27 @@ function App() {
         }
       }
 
-      // Only update state if tiles actually moved
+      // only update game state if something actually moved
       if (somethingMoved) {
-        // Trigger merge animation
+        // trigger merge animation
         setRecentlyMerged(mergedLocations);
         setTimeout(() => setRecentlyMerged([]), 150);
         
-        // Add points earned from merges
+        // add points from merged tiles
         setCurrentScore(prev => prev + pointsGained);
         
-        // After animations, spawn new tile and check game state
+        // wait a bit then spawn a new tile
         setTimeout(() => {
           updatedBoard = spawnRandomTile(updatedBoard, setNewlySpawned);
           setTiles(updatedBoard);
 
-          // Check for win condition (reached 2048)
+          // check if player hit 2048
           const has2048 = updatedBoard.some(row => row.includes(2048));
           if (has2048 && !playerWon) {
             setPlayerWon(true);
           }
 
-          // Check for loss condition (no valid moves)
+          // check if player ran out of moves
           if (!hasValidMoves(updatedBoard)) {
             setIsGameOver(true);
           }
@@ -169,13 +172,13 @@ function App() {
     }, 50);
   }, [tiles, isGameOver, playerWon]);
 
-  // Listen for arrow key presses
+  // listen for keyboard input
   useEffect(() => {
     const handleKeyDown = (event) => {
       const arrowKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
       
       if (arrowKeys.includes(event.key)) {
-        event.preventDefault(); // prevent page scroll
+        event.preventDefault(); // stop the page from scrolling
         
         const keyToDirection = {
           'ArrowUp': 'up',
@@ -190,7 +193,7 @@ function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     
-    // Cleanup listener on unmount
+    // cleanup when component unmounts
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [processMove]);
 
@@ -205,7 +208,7 @@ function App() {
       padding: '20px'
     }}>
       <div style={{ width: '100%', maxWidth: '500px' }}>
-        {/* Game title */}
+        {/* title section */}
         <div style={{ textAlign: 'center', marginBottom: '30px' }}>
           <h1 style={{ 
             fontSize: '80px', 
@@ -221,7 +224,7 @@ function App() {
           }}>Join the tiles, get to <strong>2048!</strong></p>
         </div>
 
-        {/* Score display and new game button */}
+        {/* score display and restart button */}
         <div style={{ marginBottom: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Header currentScore={currentScore} topScore={topScore} />
@@ -246,13 +249,13 @@ function App() {
           </div>
         </div>
 
-        {/* Main game board */}
+        {/* the actual game board */}
         <Board tiles={tiles} newlySpawned={newlySpawned} recentlyMerged={recentlyMerged} />
         
-        {/* Instructions */}
+        {/* instructions */}
         <HowToPlay />
         
-        {/* Win/lose overlay */}
+        {/* win/lose popup */}
         <EndGameOverlay 
           isGameOver={isGameOver} 
           playerWon={playerWon} 
