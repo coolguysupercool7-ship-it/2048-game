@@ -1,7 +1,7 @@
 import React from 'react';
 import { THEME } from '../config/gameSettings';
 
-function Header({ currentScore, topScore }) {
+function Header({ current_score, top_score }) {
   return (
     <div style={{ display: 'flex', gap: '10px' }}>
       {/* shows the score for current game */}
@@ -22,10 +22,9 @@ function Header({ currentScore, topScore }) {
           color: 'white',
           fontSize: '25px',
           fontWeight: 'bold'
-        }}>{currentScore}</div>
+        }}>{current_score}</div>
       </div>
       
-      {/* best score is saved in localStorage */}
       <div style={{ 
         background: THEME.scorePanelBg,
         padding: '10px 20px',
@@ -43,7 +42,7 @@ function Header({ currentScore, topScore }) {
           color: 'white',
           fontSize: '25px',
           fontWeight: 'bold'
-        }}>{topScore}</div>
+        }}>{top_score}</div>
       </div>
     </div>
   );
