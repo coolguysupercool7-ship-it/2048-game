@@ -1,9 +1,8 @@
 import React from 'react';
 import { THEME } from '../config/gameSettings';
 
-function EndGameOverlay({ isGameOver, playerWon, finalScore, onRestart }) {
-  // don't render anything if game is still going
-  if (!isGameOver && !playerWon) return null;
+function EndGameOverlay({ is_game_over, playerWon, final_score, onRestart }) {
+  if (!is_game_over && !playerWon) return null;
 
   return (
     <div style={{
@@ -39,7 +38,7 @@ function EndGameOverlay({ isGameOver, playerWon, finalScore, onRestart }) {
           fontSize: '16px',
           marginBottom: '30px'
         }}>
-          Final Score: <strong style={{ fontSize: '32px', display: 'block', marginTop: '10px' }}>{finalScore}</strong>
+          Final Score: <strong style={{ fontSize: '32px', display: 'block', marginTop: '10px' }}>{final_score}</strong>
         </p>
         <button
           onClick={onRestart}
