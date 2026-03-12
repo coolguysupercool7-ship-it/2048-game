@@ -2,7 +2,7 @@ import React from 'react';
 import { THEME } from '../config/gameSettings';
 
 function EndGameOverlay({ isGameOver, playerWon, finalScore, onRestart }) {
-  // Don't show overlay if game is still active
+  // don't render anything if game is still going
   if (!isGameOver && !playerWon) return null;
 
   return (
