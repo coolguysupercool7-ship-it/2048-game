@@ -1,43 +1,52 @@
 import React from 'react';
-import GameTile from './GameTile';
 import { THEME } from '../config/gameSettings';
 
-function Board({ tiles, newlySpawned, recentlyMerged }) {
-  // Helper to check if a tile position matches spawned tiles
-  const wasJustSpawned = (r, c) => {
-    return newlySpawned.some(t => t.row === r && t.col === c);
-  };
-
-  // Helper to check if a tile position matches merged tiles
-  const wasJustMerged = (r, c) => {
-    return recentlyMerged.some(t => t.row === r && t.col === c);
-  };
-
+function Header({ currentScore, topScore }) {
   return (
-    <div style={{ 
-      background: THEME.boardBg,
-      borderRadius: '10px',
-      padding: '15px',
-      position: 'relative'
-    }}>
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '15px',
+    <div style={{ display: 'flex', gap: '10px' }}>
+      {/* shows the score for current game */}
+      <div style={{ 
+        background: THEME.scorePanelBg,
+        padding: '10px 20px',
+        borderRadius: '5px',
+        minWidth: '80px',
+        textAlign: 'center'
       }}>
-        {tiles.map((row, rowIndex) =>
-          row.map((cellValue, colIndex) => (
-            <GameTile
-              key={`${rowIndex}-${colIndex}`}
-              value={cellValue}
-              justSpawned={wasJustSpawned(rowIndex, colIndex)}
-              justMerged={wasJustMerged(rowIndex, colIndex)}
-            />
-          ))
-        )}
+        <div style={{ 
+          color: THEME.scoreLabel,
+          fontSize: '13px',
+          fontWeight: 'bold',
+          textTransform: 'uppercase'
+        }}>Score</div>
+        <div style={{ 
+          color: 'white',
+          fontSize: '25px',
+          fontWeight: 'bold'
+        }}>{currentScore}</div>
+      </div>
+      
+      {/* best score is saved in localStorage */}
+      <div style={{ 
+        background: THEME.scorePanelBg,
+        padding: '10px 20px',
+        borderRadius: '3px',
+        minWidth: '80px',
+        textAlign: 'center'
+      }}>
+        <div style={{ 
+          color: THEME.scoreLabel,
+          fontSize: '13px',
+          fontWeight: 'bold',
+          textTransform: 'uppercase'
+        }}>Best</div>
+        <div style={{ 
+          color: 'white',
+          fontSize: '25px',
+          fontWeight: 'bold'
+        }}>{topScore}</div>
       </div>
     </div>
   );
 }
 
-export default Board;
+export default Header;
