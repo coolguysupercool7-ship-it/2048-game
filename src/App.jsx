@@ -10,12 +10,13 @@ import Leaderboard from './components/Leaderboard';
 import NamePrompt from './components/NamePrompt';
 import soundEffects from './helpers/soundEffects';
 
+// Helper to generate unique IDs for tiles
 let tileIdCounter = 0;
 const generateTileId = () => ++tileIdCounter;
 
 function App() {
   const [tiles, setTiles] = useState([]);
-  const [tileIds, setTileIds] = useState([]);
+  const [tileIds, setTileIds] = useState([]); // ADD THIS - Track unique IDs for sliding
   const [currentScore, setCurrentScore] = useState(0);
   const [topScore, setTopScore] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
@@ -28,11 +29,12 @@ function App() {
 
   const resetGame = useCallback(() => {
     let freshBoard = make_empty_board();
-    let freshIds = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
+    let freshIds = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null)); // ADD THIS
     
     freshBoard = spawn_random_tile(freshBoard, setNewlySpawned);
     freshBoard = spawn_random_tile(freshBoard, setNewlySpawned);
     
+    // ADD THIS - assign IDs to initial tiles
     for (let r = 0; r < BOARD_SIZE; r++) {
       for (let c = 0; c < BOARD_SIZE; c++) {
         if (freshBoard[r][c] !== 0) {
@@ -42,7 +44,7 @@ function App() {
     }
     
     setTiles(freshBoard);
-    setTileIds(freshIds);
+    setTileIds(freshIds); // ADD THIS
     setCurrentScore(0);
     setIsGameOver(false);
     setPlayerWon(false);
@@ -74,10 +76,12 @@ function App() {
   let scoreIncrease = 0;
   const mergedTiles = [];
 
+  // Helper function to process a line and its IDs together
   const processLine = (values, ids) => {
     const newValues = [];
     const newIds = [];
     
+    // Filter out zeros
     const nonZero = [];
     const nonZeroIds = [];
     for (let i = 0; i < values.length; i++) {
@@ -87,11 +91,12 @@ function App() {
       }
     }
     
+    // Merge adjacent equal values
     let i = 0;
     while (i < nonZero.length) {
       if (i + 1 < nonZero.length && nonZero[i] === nonZero[i + 1]) {
         newValues.push(nonZero[i] * 2);
-        newIds.push(nonZeroIds[i]);
+        newIds.push(nonZeroIds[i]); // Keep first tile's ID for smooth sliding
         i += 2;
       } else {
         newValues.push(nonZero[i]);
@@ -100,6 +105,7 @@ function App() {
       }
     }
     
+    // Pad with zeros
     while (newValues.length < BOARD_SIZE) {
       newValues.push(0);
       newIds.push(null);
@@ -268,6 +274,14 @@ function App() {
     const enabled = soundEffects.toggle();
     setSoundEnabled(enabled);
   };
+  // Scale the entire game to fit smaller screens
+  // Total game height: title(65) + margin(15) + scorebar(55) + margin(12) + board(450) + howtoplay(45) = ~642px
+  const GAME_HEIGHT = 660;
+  const GAME_WIDTH = 450;
+  const scaleY = (window.innerHeight - 30) / GAME_HEIGHT;
+  const scaleX = (window.innerWidth - 30) / GAME_WIDTH;
+  const scale = Math.min(1, scaleY, scaleX); // never scale up, only shrink
+
   return (
   <>
     {!playerName && <NamePrompt onNameSubmit={handleNameSubmit} />}
@@ -280,12 +294,11 @@ function App() {
       alignItems: 'center',
       justifyContent: 'center',
       fontFamily: '"Clear Sans", "Helvetica Neue", Arial, sans-serif',
-      padding: '15px',
       boxSizing: 'border-box',
       overflow: 'hidden',
       position: 'relative'
     }}>
-
+      {/* Main Game Section - ABSOLUTE CENTER, scales to fit screen */}
       <div style={{ 
         width: '450px',
         display: 'flex',
@@ -295,7 +308,8 @@ function App() {
         position: 'absolute',
         left: '50%',
         top: '50%',
-        transform: 'translate(-50%, -50%)'
+        transform: `translate(-50%, -50%) scale(${scale})`,
+        transformOrigin: 'center center'
       }}>
         <div style={{ textAlign: 'center', marginBottom: '15px' }}>
           <h1 style={{ 
@@ -316,7 +330,7 @@ function App() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Header current_score={currentScore} top_score={topScore} />
             <div style={{ display: 'flex', gap: '8px' }}>
-
+              {/* Leaderboard Menu Button (only on small screens) */}
               <button
                 className="leaderboard-menu-btn"
                 onClick={() => setShowLeaderboardMenu(true)}
@@ -397,17 +411,17 @@ function App() {
 <div 
   className="leaderboard-container"
   style={{ 
-    width: '380px',
-    height: '450px',
+    width: `${380 * scale}px`,
+    height: `${450 * scale}px`,
     position: 'absolute',
     right: '70px',
     top: '50%',
-    transform: 'translateY(calc(-50% + 64px))',
+    transform: `translateY(calc(-50% + ${55 * scale}px))`,
     display: 'flex',
     alignItems: 'stretch'
   }}
 >
-  <div style={{ width: '100%', height: '100%' }}>
+  <div style={{ width: '100%', height: '100%', transform: `scale(${scale})`, transformOrigin: 'top left', width: `${380}px`, height: `${450}px` }}>
     <Leaderboard 
       currentScore={currentScore} 
       playerName={playerName}
@@ -416,6 +430,7 @@ function App() {
   </div>
 </div>
 
+      {/* Sliding Leaderboard Menu for Small Screens */}
       {showLeaderboardMenu && (
         <>
           {/* Backdrop */}
@@ -433,6 +448,7 @@ function App() {
             }}
           />
           
+          {/* Sliding Panel */}
           <div style={{
             position: 'fixed',
             top: 0,
@@ -447,7 +463,7 @@ function App() {
             overflowY: 'auto',
             animation: 'slideIn 0.3s ease-out'
           }}>
-
+            {/* Close button */}
             <button
               onClick={() => setShowLeaderboardMenu(false)}
               style={{
