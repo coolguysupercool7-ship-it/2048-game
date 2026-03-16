@@ -1,9 +1,8 @@
 import React from 'react';
 import { THEME } from '../config/gameSettings';
 
-function EndGameOverlay({ isGameOver, playerWon, finalScore, onRestart }) {
-  // Don't show overlay if game is still active
-  if (!isGameOver && !playerWon) return null;
+function EndGameOverlay({ is_game_over, playerWon, final_score, onRestart }) {
+  if (!is_game_over && !playerWon) return null;
 
   return (
     <div style={{
@@ -16,7 +15,7 @@ function EndGameOverlay({ isGameOver, playerWon, finalScore, onRestart }) {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      zIndex: 100
+      zIndex: 9999
     }}>
       <div style={{
         background: 'white',
@@ -26,6 +25,15 @@ function EndGameOverlay({ isGameOver, playerWon, finalScore, onRestart }) {
         maxWidth: '400px',
         margin: '20px'
       }}>
+        {/* Icon */}
+        <span className="material-icons" style={{ 
+          fontSize: '60px',
+          color: playerWon ? '#5cb85c' : '#d9534f',
+          marginBottom: '10px'
+        }}>
+          {playerWon ? 'celebration' : 'sentiment_dissatisfied'}
+        </span>
+        
         <h2 style={{ 
           fontSize: '55px',
           fontWeight: 'bold',
@@ -39,7 +47,7 @@ function EndGameOverlay({ isGameOver, playerWon, finalScore, onRestart }) {
           fontSize: '16px',
           marginBottom: '30px'
         }}>
-          Final Score: <strong style={{ fontSize: '32px', display: 'block', marginTop: '10px' }}>{finalScore}</strong>
+          Final Score: <strong style={{ fontSize: '32px', display: 'block', marginTop: '10px' }}>{final_score}</strong>
         </p>
         <button
           onClick={onRestart}
@@ -51,9 +59,15 @@ function EndGameOverlay({ isGameOver, playerWon, finalScore, onRestart }) {
             borderRadius: '5px',
             fontSize: '20px',
             fontWeight: 'bold',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            margin: '0 auto'
           }}
         >
+          <span className="material-icons">refresh</span>
           Try again
         </button>
       </div>
